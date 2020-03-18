@@ -21,5 +21,7 @@ namespace CoffeeSlotMachine.Persistence
             throw new NotImplementedException();
         }
 
+        public void AddNewOrder(Order newOrder) => _dbContext.Orders.Add(newOrder);
+
     }
 }

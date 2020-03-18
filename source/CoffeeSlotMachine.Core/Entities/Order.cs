@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 
 namespace CoffeeSlotMachine.Core.Entities
 {
@@ -29,12 +30,12 @@ namespace CoffeeSlotMachine.Core.Entities
         /// <summary>
         /// Summe der eingeworfenen Cents.
         /// </summary>
-        public int ThrownInCents => -1;
+        public int ThrownInCents { get; set; }
 
         /// <summary>
         /// Summe der Cents die zurückgegeben werden
         /// </summary>
-        public int ReturnCents => -1;
+        public int ReturnCents { get; set; }
 
 
         public int ProductId { get; set; }
@@ -46,7 +47,14 @@ namespace CoffeeSlotMachine.Core.Entities
         /// Kann der Automat mangels Kleingeld nicht
         /// mehr herausgeben, wird der Rest als Spende verbucht
         /// </summary>
-        public int DonationCents => -1;
+        public int DonationCents { get; set; }
+
+        public Order()
+        {
+            Time = DateTime.Now;
+            ThrownInCoinValues = "";
+            ReturnCoinValues = "";
+        }
 
         /// <summary>
         /// Münze wird eingenommen.
@@ -55,7 +63,23 @@ namespace CoffeeSlotMachine.Core.Entities
         /// <returns>isFinished ist true, wenn der Produktpreis zumindest erreicht wurde</returns>
         public bool InsertCoin(int coinValue)
         {
-            throw new NotImplementedException();
+            bool result = false;
+
+            ThrownInCents += coinValue;
+            if(ThrownInCoinValues == "")
+            {
+                ThrownInCoinValues = $"{coinValue}";
+            }
+            else
+            {
+                ThrownInCoinValues = $"{ThrownInCoinValues};{coinValue}";
+            }
+            if (ThrownInCents >= Product.PriceInCents)
+            {
+                result = true;
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -64,9 +88,31 @@ namespace CoffeeSlotMachine.Core.Entities
         /// hängt vom Inhalt der Kasse ab.
         /// </summary>
         /// <param name="coins">Aktueller Zustand des Münzdepots</param>
-        public void FinishPayment(IEnumerable<Coin> coins)
+        public IEnumerable<Coin> FinishPayment(IEnumerable<Coin> coins)
         {
-            throw new NotImplementedException();
+            Coin[] coinArray = coins
+                .OrderByDescending(c => c.CoinValue)
+                .ToArray();
+                
+            if(ReturnCents > 0)
+            {
+                for (int i = 0; i < coinArray.Length; i++)
+                {
+                    while (coinArray[i].Amount > 0 && ReturnCents - coinArray[i].CoinValue >= 0)
+                    {
+                        ReturnCoinValues = $"{ReturnCoinValues}{coinArray[i].CoinValue};";
+                        ReturnCents -= coinArray[i].CoinValue;
+                        coinArray[i].Amount--;
+                    }
+                }
+            }
+
+            if (ReturnCoinValues.Length > 0)
+                ReturnCoinValues = ReturnCoinValues.Remove(ReturnCoinValues.Length - 1);
+
+            DonationCents = ReturnCents;
+
+            return coinArray.OrderBy(c => c.CoinValue);
         }
     }
 }

@@ -1,8 +1,9 @@
-﻿using CoffeeSlotMachine.Core.Contracts;
+﻿    using CoffeeSlotMachine.Core.Contracts;
 using CoffeeSlotMachine.Core.Entities;
 using CoffeeSlotMachine.Persistence;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace CoffeeSlotMachine.Core.Logic
 {
@@ -41,7 +42,16 @@ namespace CoffeeSlotMachine.Core.Logic
         /// <param name="product"></param>
         public Order OrderCoffee(Product product)
         {
-            throw new NotImplementedException();
+
+            if (GetProducts().Contains(product))
+            {
+                Order newOrder = new Order();
+                return newOrder;
+            }
+            else
+            {
+                throw new ArgumentException("Produkt nicht verfügbar");
+            }
         }
 
         /// <summary>

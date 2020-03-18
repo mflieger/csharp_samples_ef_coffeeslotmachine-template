@@ -14,5 +14,6 @@ namespace CoffeeSlotMachine.Persistence
             _dbContext = dbContext;
         }
 
+        public IEnumerable<Coin> GetAllCoins => _dbContext.Coins;
     }
 }
